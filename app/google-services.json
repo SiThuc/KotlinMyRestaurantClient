@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1018686348471",
+    "firebase_url": "https://myrestaurantkotlin.firebaseio.com",
+    "project_id": "myrestaurantkotlin",
+    "storage_bucket": "myrestaurantkotlin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018686348471:android:2ea989378cf7a49ff5c132",
+        "android_client_info": {
+          "package_name": "com.example.myrestaurantclientkotlin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1018686348471-ogeluc3ls9tkpgfvb32q3n9mcv9teb5c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoXiOEJQgDOT600zhZwth0sBsNVVuQeVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1018686348471-ogeluc3ls9tkpgfvb32q3n9mcv9teb5c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
