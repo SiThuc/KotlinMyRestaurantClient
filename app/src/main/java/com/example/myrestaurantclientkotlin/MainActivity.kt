@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             if (user != null){
-                checkUserFromFirebase(user!!)
+                checkUserFromFirebase(user)
             }else{
                 phoneLogin()
             }
@@ -85,8 +85,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUserFromFirebase(user: FirebaseUser) {
-        dialog!!.show()
-        userRef!!.child(user!!.uid)
+        dialog.show()
+        userRef.child(user.uid)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if(snapshot.exists()){
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                             showRegisterDialog(user)
                         }
 
-                        dialog!!.dismiss()
+                        dialog.dismiss()
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
         val edt_phone = itemView.findViewById<EditText>(R.id.edt_phone)
 
         //Set phone number for editText
-        edt_phone.setText(user!!.phoneNumber.toString())
+        edt_phone.setText(user.phoneNumber.toString())
 
         builder.setView(itemView)
         builder.setNegativeButton("CANCEL") {dialogInterface, i -> dialogInterface.dismiss()}
@@ -133,12 +133,12 @@ class MainActivity : AppCompatActivity() {
 
 
         val userModel = UserModel()
-        userModel.uid = user!!.uid
+        userModel.uid = user.uid
         userModel.name = edt_name.text.toString()
         userModel.address = edt_address.text.toString()
         userModel.phone = edt_phone.text.toString()
 
-        userRef!!.child(user!!.uid)
+        userRef.child(user.uid)
             .setValue(userModel)
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
