@@ -2,6 +2,7 @@ package com.example.myrestaurantclientkotlin
 
 import android.os.Bundle
 import android.view.Menu
+import android.widget.Toast
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -13,6 +14,10 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.example.myrestaurantclientkotlin.eventbus.CategoryClick
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class HomeActivity : AppCompatActivity() {
 
@@ -36,7 +41,7 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
+                R.id.nav_home, R.id.nav_category, R.id.nav_foodlist
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -52,5 +57,25 @@ class HomeActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    //EventBus which listens when user click on the Item in Category Fragment
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onCategorySelected(event: CategoryClick) {
+        if (event.isSucess) {
+            findNavController(R.id.nav_host_fragment).navigate(R.id.nav_foodlist)
+        }
+    }
+
+    // Register EventBus on onStart() function
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+    // Unregister EventBus on onStop() function
+    override fun onStop() {
+        EventBus.getDefault().unregister(this)
+        super.onStop()
     }
 }
