@@ -15,6 +15,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.example.myrestaurantclientkotlin.eventbus.CategoryClick
+import com.example.myrestaurantclientkotlin.eventbus.FoodItemClick
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -41,7 +42,7 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_category, R.id.nav_foodlist
+                R.id.nav_home, R.id.nav_category, R.id.nav_foodlist, R.id.nav_food_detail
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -62,10 +63,20 @@ class HomeActivity : AppCompatActivity() {
     //EventBus which listens when user click on the Item in Category Fragment
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onCategorySelected(event: CategoryClick) {
-        if (event.isSucess) {
+        if (event.isSuccess) {
             findNavController(R.id.nav_host_fragment).navigate(R.id.nav_foodlist)
         }
     }
+
+    //EventBus which listens when user click on the Item in FoodList Fragment
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onFoodSelected(event: FoodItemClick) {
+        if (event.isSuccess) {
+            findNavController(R.id.nav_host_fragment).navigate(R.id.nav_food_detail)
+        }
+    }
+
+
 
     // Register EventBus on onStart() function
     override fun onStart() {
