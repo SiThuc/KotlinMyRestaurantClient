@@ -8,4 +8,9 @@ class FoodModel {
     var description: String? = null
     var addon: List<AddonModel> = ArrayList<AddonModel>()
     var size: List<SizeModel> = ArrayList<SizeModel>()
+    var key: String? = null
+
+    var ratingValue: Double = 0.0
+    var ratingCount: Long = 0L
+    var averageRating: Double = 0.0
 }
