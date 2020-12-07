@@ -119,8 +119,8 @@
 
                     <com.cepheuen.elegantnumberbutton.view.ElegantNumberButton
                         android:id="@+id/number_button"
-                        android:layout_width="100dp"
-                        android:layout_height="30dp"
+                        android:layout_width="130dp"
+                        android:layout_height="50dp"
                         android:layout_marginLeft="8dp"
                         android:layout_marginTop="8dp"
                         android:layout_marginBottom="18dp"
@@ -234,14 +234,12 @@
                             android:layout_marginTop="4dp"
                             android:src="@drawable/ic_add_box_24"
                             app:tint="@color/colorAccent" />
-
-
                     </LinearLayout>
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/chip_group_user_selected_addon"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="50dp" />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

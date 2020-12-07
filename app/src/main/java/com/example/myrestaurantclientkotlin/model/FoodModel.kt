@@ -14,6 +14,6 @@ class FoodModel {
     var ratingCount: Long = 0L
     var averageRating: Double = 0.0
 
-    var userSelectedAddon: List<AddonModel>? = null
+    var userSelectedAddon: MutableList<AddonModel>? = null
     var userSelectedSize: SizeModel? = null
 }

@@ -16,7 +16,7 @@
         <activity
             android:name=".HomeActivity"
             android:label="@string/title_activity_home"
-            android:theme="@style/Theme.MyRestaurantClientKotlin.NoActionBar"></activity>
+            android:theme="@style/Theme.MyRestaurantClientKotlin"></activity>
         <activity
             android:name=".MainActivity"
             android:theme="@style/Theme.MyRestaurantClientKotlin">
