@@ -44,6 +44,7 @@ class FoodDetailFragment : Fragment() {
     private var number_button: ElegantNumberButton? = null
     private var ratingBar: RatingBar? = null
     private var btnShowComment: Button? = null
+    private var rdi_group_size: RadioGroup? = null
 
     private var waitingDialog: Dialog? = null
 
@@ -141,6 +142,41 @@ class FoodDetailFragment : Fragment() {
         food_description!!.text = StringBuilder(it.description)
         food_price!!.text = StringBuilder(it.price.toString())
         ratingBar!!.rating = it.averageRating.toFloat()
+
+        //Create RadioButtons and adding them into RadioGroup Size
+        for (sizeModel in it!!.size) {
+            val radioButton = RadioButton(context)
+            radioButton.setOnCheckedChangeListener { compoundButton, b ->
+                if (b)
+                    Common.foodSelected!!.userSelectedSize = sizeModel
+                calculateTotalPrice()
+            }
+            val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f)
+            radioButton.layoutParams = params
+            radioButton.text = sizeModel.name
+            radioButton.tag = sizeModel.price
+
+            rdi_group_size!!.addView(radioButton)
+        }
+
+        //Default first radiobutton select
+        if (rdi_group_size!!.childCount > 0) {
+            val radioButton = rdi_group_size!!.getChildAt(0) as RadioButton
+            radioButton.isChecked = true
+        }
+    }
+
+    private fun calculateTotalPrice() {
+        var totalPrice = Common.foodSelected!!.price.toDouble()
+        var displayPrice = 0.0
+
+        //Size
+        totalPrice += Common.foodSelected!!.userSelectedSize!!.price.toDouble()
+
+        displayPrice = totalPrice * number_button!!.number.toInt()
+        displayPrice = Math.round(displayPrice * 100.0) / 100.0
+
+        food_price!!.text = StringBuilder("").append(Common.formatPrice(displayPrice)).toString()
     }
 
     private fun initView(root: View) {
@@ -157,6 +193,7 @@ class FoodDetailFragment : Fragment() {
         number_button = root.findViewById<ElegantNumberButton>(R.id.number_button)
         ratingBar = root.findViewById<RatingBar>(R.id.ratingBar)
         btnShowComment = root.findViewById<Button>(R.id.btnShowComment)
+        rdi_group_size = root.findViewById<RadioGroup>(R.id.rdi_group_size)
 
         (activity as AppCompatActivity).supportActionBar!!.title = Common.foodSelected!!.name
 
