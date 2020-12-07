@@ -254,7 +254,8 @@
                 android:layout_marginRight="8dp"
                 android:text="Show Comment"
                 android:textColor="@android:color/white"
-                app:cornerRadius="4sp" />
+                app:cornerRadius="4sp"
+                android:background="@android:color/holo_green_light"/>
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

@@ -25,6 +25,7 @@ import com.example.myrestaurantclientkotlin.adapter.MyFoodListAdapter
 import com.example.myrestaurantclientkotlin.common.Common
 import com.example.myrestaurantclientkotlin.model.CommentModel
 import com.example.myrestaurantclientkotlin.model.FoodModel
+import com.example.myrestaurantclientkotlin.ui.CommentFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.*
 import dmax.dialog.SpotsDialog
@@ -78,9 +79,9 @@ class FoodDetailFragment : Fragment() {
             .push()
             .setValue(commentModel)
             .addOnCompleteListener { task ->
-                if(task.isSuccessful){
+                if (task.isSuccessful) {
                     //We upload the value of Rating to foodModel, then update it
-                    addRatingToFood(commentModel!!.ratingValue)
+                    addRatingToFood(commentModel!!.ratingValue.toDouble())
                 }
                 waitingDialog!!.dismiss()
             }
@@ -93,16 +94,16 @@ class FoodDetailFragment : Fragment() {
             .child(Common.categorySelected!!.menu_id!!)
             .child("foods")
             .child(Common.foodSelected!!.key!!)
-            .addListenerForSingleValueEvent(object :ValueEventListener{
+            .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if(snapshot.exists()){
+                    if (snapshot.exists()) {
                         val foodModel = snapshot.getValue(FoodModel::class.java)
                         foodModel!!.key = Common.foodSelected!!.key
 
                         //Apply Rating
                         val sumRating = foodModel.ratingValue + ratingValue
                         val ratingCount = foodModel.ratingCount + 1
-                        val result = sumRating/ratingCount
+                        val result = sumRating / ratingCount
 
                         val updateData = HashMap<String, Any>()
                         updateData["ratingValue"] = sumRating
@@ -119,13 +120,17 @@ class FoodDetailFragment : Fragment() {
                             .addOnCompleteListener { task ->
                                 Common.foodSelected = foodModel
                                 foodDetailViewModel.setFoodModel(foodModel)
-                                Toast.makeText(requireContext(), "Successfully! Thank you for commenting", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Successfully! Thank you for commenting",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(requireContext(), ""+error.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "" + error.message, Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -159,6 +164,12 @@ class FoodDetailFragment : Fragment() {
             showDialogComment()
         })
 
+        //Show Comment List
+        btnShowComment!!.setOnClickListener({
+            val commentFragment = CommentFragment.getInstance()
+            commentFragment.show(requireActivity().supportFragmentManager, "CommentFragment")
+        })
+
     }
 
     private fun showDialogComment() {
@@ -179,7 +190,7 @@ class FoodDetailFragment : Fragment() {
             commentModel.name = Common.currentUser!!.name
             commentModel.uid = Common.currentUser!!.uid
             commentModel.comment = comment_rating_bar.text.toString()
-            commentModel.ratingValue = rating_bar_comment.rating.toDouble()
+            commentModel.ratingValue = rating_bar_comment.rating
 
             val serverTimestamp = HashMap<String, Any>()
             serverTimestamp["timestamp"] = ServerValue.TIMESTAMP
