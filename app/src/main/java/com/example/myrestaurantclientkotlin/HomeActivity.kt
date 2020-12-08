@@ -14,8 +14,18 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.andremion.counterfab.CounterFab
+import com.example.myrestaurantclientkotlin.common.Common
+import com.example.myrestaurantclientkotlin.database.CartDataSource
+import com.example.myrestaurantclientkotlin.database.CartDatabase
+import com.example.myrestaurantclientkotlin.database.LocalCartDataSource
 import com.example.myrestaurantclientkotlin.eventbus.CategoryClick
+import com.example.myrestaurantclientkotlin.eventbus.CountCartEvent
 import com.example.myrestaurantclientkotlin.eventbus.FoodItemClick
+import io.reactivex.SingleObserver
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -23,18 +33,25 @@ import org.greenrobot.eventbus.ThreadMode
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var cartDataSource: CartDataSource
+    private lateinit var fab:CounterFab
+
+    override fun onResume() {
+        super.onResume()
+        countCartItem()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+        cartDataSource = LocalCartDataSource(CartDatabase.getInstance(this).cartDao())
+
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        val fab: FloatingActionButton = findViewById(R.id.fab)
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+        fab = findViewById(R.id.fab)
+
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
@@ -47,6 +64,8 @@ class HomeActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        countCartItem()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,6 +95,32 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    //EventBus which listens when user click on the Cart Icon in FoodListFragment
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onCountCartEvent(event: CountCartEvent) {
+        if (event.isSuccess) {
+            countCartItem()
+        }
+    }
+
+    private fun countCartItem() {
+        cartDataSource.countItemInCart(Common.currentUser!!.uid!!)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : SingleObserver<Int>{
+                override fun onSubscribe(d: Disposable) {
+
+                }
+
+                override fun onSuccess(t: Int) {
+                    fab.count = t
+                }
+
+                override fun onError(e: Throwable) {
+                    Toast.makeText(this@HomeActivity, "[COUNT CART]"+e.message, Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
 
 
     // Register EventBus on onStart() function

@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'com.google.gms.google-services'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -78,5 +79,13 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.github.andremion:counterfab:1.2.0'
     implementation 'com.cepheuen.elegant-number-button:lib:1.0.2'
+
+    // Room Database
+    implementation 'androidx.room:room-rxjava2:2.3.0-alpha03'
+    kapt 'androidx.room:room-compiler:2.3.0-alpha03'
+
+    //Counter Fab
+    implementation 'com.github.andremion:counterfab:1.2.2'
+
 
 }
