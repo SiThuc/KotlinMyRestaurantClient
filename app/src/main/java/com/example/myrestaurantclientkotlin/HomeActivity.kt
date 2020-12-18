@@ -14,6 +14,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.navigation.NavController
 import com.andremion.counterfab.CounterFab
 import com.example.myrestaurantclientkotlin.common.Common
 import com.example.myrestaurantclientkotlin.database.CartDataSource
@@ -22,6 +23,7 @@ import com.example.myrestaurantclientkotlin.database.LocalCartDataSource
 import com.example.myrestaurantclientkotlin.eventbus.CategoryClick
 import com.example.myrestaurantclientkotlin.eventbus.CountCartEvent
 import com.example.myrestaurantclientkotlin.eventbus.FoodItemClick
+import com.example.myrestaurantclientkotlin.eventbus.HideFABCart
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -35,6 +37,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var cartDataSource: CartDataSource
     private lateinit var fab:CounterFab
+    private lateinit var navController: NavController
 
     override fun onResume() {
         super.onResume()
@@ -51,15 +54,18 @@ class HomeActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab = findViewById(R.id.fab)
+        fab.setOnClickListener{ view ->
+            navController.navigate(R.id.nav_cart)
+        }
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
-        val navController = findNavController(R.id.nav_host_fragment)
+        navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_category, R.id.nav_foodlist, R.id.nav_food_detail
+                R.id.nav_home, R.id.nav_category, R.id.nav_foodlist, R.id.nav_food_detail, R.id.nav_cart
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -101,6 +107,15 @@ class HomeActivity : AppCompatActivity() {
         if (event.isSuccess) {
             countCartItem()
         }
+    }
+
+    //EventBus for hidding the fabcart when user navigates to Cart Fragment
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onHiveCartFab(event: HideFABCart) {
+        if (event.isHide) {
+            fab.hide()
+        }else
+            fab.show()
     }
 
     private fun countCartItem() {

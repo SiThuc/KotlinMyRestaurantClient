@@ -10,11 +10,11 @@ interface CartDAO {
     @Query("Select * from Cart where uid=:uid")
     fun getAllCart(uid: String): Flowable<List<CartItem>>
 
-    @Query("Select COUNT(*) from Cart where uid=:uid")
+    @Query("Select SUM(foodQuantity) from Cart where uid=:uid")
     fun countItemInCart(uid: String): Single<Int>
 
-    @Query("Select SUM(foodQuantity*foodPrice)+(foodExtraPrice * foodQuantity) from Cart where uid=:uid")
-    fun sumPrice(uid: String): Single<Long>
+    @Query("Select SUM((foodPrice+foodExtraPrice)*foodQuantity) from Cart where uid=:uid")
+    fun sumPrice(uid: String): Single<Double>
 
     @Query("Select * from Cart where foodId=:foodId AND uid=:uid")
     fun getItemInCart(foodId: String, uid: String): Single<CartItem>
@@ -22,10 +22,21 @@ interface CartDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrReplaceAll(vararg cartItems: CartItem): Completable
 
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun updateCart(cart: CartItem): Single<Int>
+
     @Delete
     fun deleteCart(cart: CartItem): Single<Int>
 
     @Query("Delete from Cart where uid=:uid")
     fun cleanCart(uid: String): Single<Int>
+
+    @Query("select * from Cart where foodId =:foodId AND uid=:uid AND foodSize=:foodSize AND foodAddon=:foodAddon")
+    fun getItemWithAllOptionsInCart(
+        uid: String,
+        foodId: String,
+        foodSize: String,
+        foodAddon: String,
+    ): Single<CartItem>
 
 }

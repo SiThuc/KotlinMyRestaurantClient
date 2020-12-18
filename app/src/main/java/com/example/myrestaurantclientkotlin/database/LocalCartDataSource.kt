@@ -13,7 +13,7 @@ class LocalCartDataSource(private val cartDAO: CartDAO) : CartDataSource {
         return cartDAO.countItemInCart(uid)
     }
 
-    override fun sumPrice(uid: String): Single<Long>{
+    override fun sumPrice(uid: String): Single<Double>{
         return cartDAO.sumPrice(uid)
     }
 
@@ -25,11 +25,24 @@ class LocalCartDataSource(private val cartDAO: CartDAO) : CartDataSource {
         return cartDAO.insertOrReplaceAll(*cartItems)
     }
 
+    override fun updateCart(cart: CartItem): Single<Int> {
+        return cartDAO.updateCart(cart)
+    }
+
     override fun deleteCart(cart: CartItem): Single<Int>{
         return cartDAO.deleteCart(cart)
     }
 
     override fun cleanCart(uid: String): Single<Int>{
         return cartDAO.cleanCart(uid)
+    }
+
+    override fun getItemWithAllOptionsInCart(
+        uid: String,
+        foodId: String,
+        foodSize: String,
+        foodAddon: String
+    ): Single<CartItem> {
+        return cartDAO.getItemWithAllOptionsInCart(uid, foodId, foodSize, foodAddon)
     }
 }

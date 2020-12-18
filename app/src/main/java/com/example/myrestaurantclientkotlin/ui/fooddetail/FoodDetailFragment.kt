@@ -20,6 +20,10 @@ import com.bumptech.glide.Glide
 import com.cepheuen.elegantnumberbutton.view.ElegantNumberButton
 import com.example.myrestaurantclientkotlin.R
 import com.example.myrestaurantclientkotlin.common.Common
+import com.example.myrestaurantclientkotlin.database.CartDatabase
+import com.example.myrestaurantclientkotlin.database.CartItem
+import com.example.myrestaurantclientkotlin.database.LocalCartDataSource
+import com.example.myrestaurantclientkotlin.eventbus.CountCartEvent
 import com.example.myrestaurantclientkotlin.model.CommentModel
 import com.example.myrestaurantclientkotlin.model.FoodModel
 import com.example.myrestaurantclientkotlin.ui.CommentFragment
@@ -28,7 +32,14 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.*
+import com.google.gson.Gson
 import dmax.dialog.SpotsDialog
+import io.reactivex.SingleObserver
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import org.greenrobot.eventbus.EventBus
 import java.lang.StringBuilder
 
 class FoodDetailFragment : Fragment(), TextWatcher {
@@ -36,6 +47,9 @@ class FoodDetailFragment : Fragment(), TextWatcher {
     private lateinit var foodDetailViewModel: FoodDetailViewModel
 
     private lateinit var addonBottomSheetDialog: BottomSheetDialog
+
+    private val compositeDisposable = CompositeDisposable()
+    private lateinit var cartDataSource: LocalCartDataSource
 
     private var img_food: ImageView? = null
     private var btnCart: CounterFab? = null
@@ -195,6 +209,8 @@ class FoodDetailFragment : Fragment(), TextWatcher {
 
     private fun initView(root: View) {
 
+        cartDataSource = LocalCartDataSource(CartDatabase.getInstance(requireContext()).cartDao())
+
         addonBottomSheetDialog = BottomSheetDialog(requireContext(), R.style.DialogStyle)
         val layout_user_selected_addon:View = layoutInflater.inflate(R.layout.layout_addon_display, null)
         chip_group_addon = layout_user_selected_addon.findViewById(R.id.chip_group_addon) as ChipGroup
@@ -242,6 +258,132 @@ class FoodDetailFragment : Fragment(), TextWatcher {
             commentFragment.show(requireActivity().supportFragmentManager, "CommentFragment")
         })
 
+        btnCart!!.setOnClickListener {
+            val cartItem = CartItem()
+
+            cartItem.uid = Common.currentUser!!.uid.toString()
+            cartItem.userPhone = Common.currentUser!!.phone
+
+            cartItem.foodId = Common.foodSelected!!.id!!
+            cartItem.foodName = Common.foodSelected!!.name
+            cartItem.foodImage = Common.foodSelected!!.image
+            cartItem.foodPrice = Common.foodSelected!!.price.toDouble()
+            cartItem.foodQuantity = number_button!!.number.toInt()
+            cartItem.foodExtraPrice = Common.calculateExtraPrice(Common.foodSelected!!.userSelectedSize, Common.foodSelected!!.userSelectedAddon)
+
+            if(Common.foodSelected!!.userSelectedAddon != null)
+                cartItem.foodAddon = Gson().toJson(Common.foodSelected!!.userSelectedAddon)
+            else
+                cartItem.foodAddon = "Default"
+
+
+            if(Common.foodSelected!!.userSelectedSize != null)
+                cartItem.foodSize = Gson().toJson(Common.foodSelected!!.userSelectedSize)
+            else
+                cartItem.foodSize = "Default"
+
+            cartDataSource.getItemWithAllOptionsInCart(
+                Common.currentUser!!.uid!!,
+                cartItem.foodId,
+                cartItem.foodSize!!,
+                cartItem.foodAddon!!
+            )
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(object : SingleObserver<CartItem> {
+                    override fun onSubscribe(d: Disposable) {
+
+                    }
+
+                    override fun onSuccess(t: CartItem) {
+                        if (t.equals(cartItem)) {
+
+                            // If item already in database, just update
+                            t.foodExtraPrice = cartItem.foodExtraPrice
+                            t.foodAddon = cartItem.foodAddon
+                            t.foodSize = cartItem.foodSize
+                            t.foodQuantity = t.foodQuantity!!.plus(cartItem.foodQuantity!!)
+
+                            cartDataSource.updateCart(t)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(object : SingleObserver<Int> {
+                                    override fun onSubscribe(d: Disposable) {
+
+                                    }
+
+                                    override fun onSuccess(t: Int) {
+                                        Toast.makeText(
+                                            context,
+                                            "Update Cart Success",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        EventBus.getDefault().postSticky(CountCartEvent(true))
+                                    }
+
+                                    override fun onError(e: Throwable) {
+                                        Toast.makeText(
+                                            context,
+                                            "[UPDATE CART] " + e.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+
+                                })
+                        } else {
+
+                            // If Item is not available in database, just insert
+                            compositeDisposable.add(
+                                cartDataSource.insertOrReplaceAll(cartItem)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({
+                                        Toast.makeText(
+                                            context,
+                                            "Add to cart success",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        EventBus.getDefault().postSticky(CountCartEvent(true))
+                                    }, { t: Throwable? ->
+                                        Toast.makeText(
+                                            context,
+                                            "[INSERT CART]" + t!!.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    })
+                            )
+
+                        }
+
+                    }
+
+                    override fun onError(e: Throwable) {
+                        if (e.message!!.contains("empty")) {
+                            compositeDisposable.add(
+                                cartDataSource.insertOrReplaceAll(cartItem)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({
+                                        Toast.makeText(
+                                            context,
+                                            "Add to cart success",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        EventBus.getDefault().postSticky(CountCartEvent(true))
+                                    }, { t: Throwable? ->
+                                        Toast.makeText(
+                                            context,
+                                            "[INSERT CART]" + t!!.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    })
+                            )
+                        } else
+                            Toast.makeText(context, "[CART ERROR!!]", Toast.LENGTH_SHORT).show()
+                    }
+
+                })
+        }
     }
 
     private fun displayAllAddon() {
@@ -322,7 +464,7 @@ class FoodDetailFragment : Fragment(), TextWatcher {
     }
 
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {
@@ -345,7 +487,7 @@ class FoodDetailFragment : Fragment(), TextWatcher {
     }
 
     override fun afterTextChanged(s: Editable?) {
-        TODO("Not yet implemented")
+
     }
 
 }

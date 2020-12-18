@@ -87,5 +87,8 @@ dependencies {
     //Counter Fab
     implementation 'com.github.andremion:counterfab:1.2.2'
 
+    //Gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+
 
 }
