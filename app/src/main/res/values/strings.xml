@@ -20,4 +20,5 @@
     <string name="add_on">Addon</string>
     <string name="menu_cart">In Cart</string>
     <string name="ation_clear_cart">Clear Cart</string>
+    <string name="menu_sign_out">Sign Out</string>
 </resources>
