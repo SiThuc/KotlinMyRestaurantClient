@@ -11,11 +11,18 @@ import android.widget.EditText
 import android.widget.Toast
 import com.example.myrestaurantclientkotlin.common.Common
 import com.example.myrestaurantclientkotlin.model.UserModel
+import com.example.myrestaurantclientkotlin.utils.toast
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import dmax.dialog.SpotsDialog
 import io.reactivex.disposables.CompositeDisposable
 import java.util.*
@@ -59,12 +66,32 @@ class MainActivity : AppCompatActivity() {
         dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
 
         listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            val user = firebaseAuth.currentUser
-            if (user != null){
-                checkUserFromFirebase(user)
-            }else{
-                phoneLogin()
-            }
+
+            Dexter.withContext(this@MainActivity)
+                .withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(object: PermissionListener{
+                    override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                        val user = firebaseAuth.currentUser
+                        if (user != null){
+                            checkUserFromFirebase(user)
+                        }else{
+                            phoneLogin()
+                        }
+
+                    }
+
+                    override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                        toast("You muss accept this permission to use app")
+
+                    }
+
+                    override fun onPermissionRationaleShouldBeShown(
+                        p0: PermissionRequest?,
+                        p1: PermissionToken?
+                    ) {
+
+                    }
+                }).check()
         }
     }
 
